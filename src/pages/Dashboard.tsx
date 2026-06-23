@@ -6,7 +6,7 @@ import { Transaction } from '../types';
 
 const Dashboard = () => {
   useFinanceData();
-  const { incomes, expenses, isLoading } = useStore();
+  const { incomes, expenses } = useStore();
 
   const totalIncome = incomes.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
