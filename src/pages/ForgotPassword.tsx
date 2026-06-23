@@ -7,15 +7,12 @@ import { useToastStore } from '../store/useToastStore';
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
 
     const { error } = await supabase.auth.resetPasswordForEmail(email);
 

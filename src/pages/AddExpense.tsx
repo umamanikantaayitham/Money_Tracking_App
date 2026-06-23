@@ -26,7 +26,7 @@ const AddExpense = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { addToast } = useToastStore();
 
-  const { register, handleSubmit, formState: { errors }, setValue, reset, watch } = useForm<FormInputs>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormInputs>({
     defaultValues: {
       category: EXPENSE_CATEGORIES[0],
       transaction_date: new Date().toISOString().split('T')[0],
