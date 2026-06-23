@@ -7,9 +7,9 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 
 const EXPENSE_CATEGORIES = ['Netflix', 'Food', 'Groceries', 'Rent', 'Electricity', 'Internet', 'Transport', 'Shopping'];
 
-type ExpenseFormInputs = {
+type FormInputs = {
   amount: string;
-  expense_name: string;
+  name: string; // Used for both source and expense_name
   category: string;
   transaction_date: string;
   notes: string;
@@ -19,8 +19,9 @@ const AddExpense = () => {
   const { user } = useStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [type, setType] = useState<'expense' | 'income'>('expense');
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<ExpenseFormInputs>({
+  const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<FormInputs>({
     defaultValues: {
       category: EXPENSE_CATEGORIES[0],
       transaction_date: new Date().toISOString().split('T')[0],
@@ -28,24 +29,22 @@ const AddExpense = () => {
     }
   });
 
-  const onSubmit: SubmitHandler<ExpenseFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<FormInputs> = async (data) => {
     if (!user) return;
-    
     setLoading(true);
-    const { error } = await supabase.from('expenses').insert([{
-      user_id: user.id,
-      amount: parseFloat(data.amount),
-      expense_name: data.category, // using category as name
-      category: data.category,
-      transaction_date: data.transaction_date,
-      notes: data.notes
-    }]);
+
+    const table = type === 'income' ? 'income' : 'expenses';
+    const payload = type === 'income' 
+      ? { user_id: user.id, source: data.name, amount: parseFloat(data.amount), category: data.category, transaction_date: data.transaction_date, notes: data.notes }
+      : { user_id: user.id, expense_name: data.name, amount: parseFloat(data.amount), category: data.category, transaction_date: data.transaction_date, notes: data.notes };
+
+    const { error } = await supabase.from(table).insert([payload]);
 
     setLoading(false);
     if (!error) {
       navigate('/');
     } else {
-      alert('Error adding expense');
+      alert(`Error adding ${type}`);
     }
   };
 
@@ -58,8 +57,26 @@ const AddExpense = () => {
       {/* Header */}
       <div className="flex justify-between items-center p-6 text-white pt-12">
         <button onClick={() => navigate(-1)}><ChevronLeft size={28} /></button>
-        <h2 className="text-xl font-medium">Add Expense</h2>
+        <h2 className="text-xl font-medium">Add {type === 'income' ? 'Income' : 'Expense'}</h2>
         <button><MoreHorizontal size={28} /></button>
+      </div>
+
+      {/* Type Toggle */}
+      <div className="px-6 mb-2">
+        <div className="flex justify-between items-center bg-white/20 rounded-xl p-1 backdrop-blur-md">
+          <button
+            onClick={() => { setType('expense'); reset(); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${type === 'expense' ? 'bg-white text-primary shadow-sm' : 'text-white'}`}
+          >
+            Expense
+          </button>
+          <button
+            onClick={() => { setType('income'); reset(); }}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${type === 'income' ? 'bg-white text-primary shadow-sm' : 'text-white'}`}
+          >
+            Income
+          </button>
+        </div>
       </div>
       
       {/* Form Card */}
@@ -67,7 +84,7 @@ const AddExpense = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           
           <div>
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Name</label>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Category</label>
             <div className="relative">
               <select
                 {...register('category', { required: true })}
@@ -82,6 +99,16 @@ const AddExpense = () => {
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
             </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Name</label>
+            <input
+              type="text"
+              {...register('name', { required: true })}
+              className={`w-full px-4 py-4 rounded-2xl border ${errors.name ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-medium outline-none focus:border-primary`}
+              placeholder={type === 'income' ? 'Salary, Freelance...' : 'Netflix, Rent...'}
+            />
           </div>
 
           <div>

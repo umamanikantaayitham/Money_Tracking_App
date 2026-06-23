@@ -38,69 +38,83 @@ const Transactions = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Transaction History</h2>
-
-      <div className="glass-panel p-4 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            className="input-field pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          {(['all', 'income', 'expense'] as const).map(type => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                filterType === type 
-                  ? 'bg-primary text-white' 
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#F8F9F9] dark:bg-gray-900 pb-24">
+      
+      {/* Top Header Section with Teal Gradient */}
+      <div className="bg-primary rounded-b-[40px] px-6 pt-14 pb-8 shadow-md relative z-10">
+        <h2 className="text-2xl font-bold text-white text-center tracking-wide">Transaction History</h2>
       </div>
 
-      <div className="space-y-3">
-        {filteredTransactions.map(t => (
-          <div key={`${t.type}-${t.id}`} className="glass-panel p-4 flex items-center justify-between hover:scale-[1.01] transition-transform">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${t.type === 'income' ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-500'}`}>
-                {t.type === 'income' ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
-              </div>
-              <div>
-                <h4 className="font-semibold">{t.type === 'income' ? t.source : t.expense_name}</h4>
-                <div className="flex gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">{t.category}</span>
-                  <span>{t.transaction_date}</span>
+      {/* Main Content Area */}
+      <div className="px-6 -mt-4 relative z-20 space-y-6">
+        
+        {/* Search and Filter Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex justify-between bg-gray-50 dark:bg-gray-900 rounded-xl p-1">
+            {(['all', 'income', 'expense'] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all duration-300 ${
+                  filterType === type 
+                    ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Transaction List */}
+        <div className="space-y-4">
+          {filteredTransactions.map(t => (
+            <div key={`${t.type}-${t.id}`} className="bg-white dark:bg-gray-800 rounded-2xl p-4 flex items-center justify-between shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${t.type === 'income' ? 'bg-[#E5F5E9] text-[#2EA265]' : 'bg-[#FEECEB] text-[#E04F5F]'}`}>
+                  {(t.type === 'income' ? t.source : t.expense_name).charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-base">
+                    {t.type === 'income' ? t.source : t.expense_name}
+                  </h4>
+                  <p className="text-xs text-gray-400 mt-0.5 font-medium">{t.transaction_date}</p>
                 </div>
               </div>
+              
+              <div className="flex items-center gap-3">
+                <span className={`font-bold text-base tracking-tight ${t.type === 'income' ? 'text-[#2EA265]' : 'text-[#E04F5F]'}`}>
+                  {t.type === 'income' ? '+' : '-'}₹{Number(t.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
+                <button onClick={() => handleDelete(t)} className="text-gray-300 hover:text-red-500 transition-colors p-2 active:scale-90">
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <span className={`font-bold ${t.type === 'income' ? 'text-primary' : 'text-red-500'}`}>
-                {t.type === 'income' ? '+' : '-'}₹{Number(t.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </span>
-              <button onClick={() => handleDelete(t)} className="text-gray-400 hover:text-red-500 transition-colors p-2">
-                <Trash2 size={18} />
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {filteredTransactions.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No transactions found matching your criteria.
-          </div>
-        )}
+          {filteredTransactions.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                <Search size={32} className="text-gray-300" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No Transactions Found</h3>
+              <p className="text-sm text-gray-400 px-8">We couldn't find any transactions matching your current search or filter criteria.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
