@@ -1,13 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { Transaction } from '../types';
-import { Search, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { useToastStore } from '../store/useToastStore';
 
 const Transactions = () => {
   const { incomes, expenses } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { addToast } = useToastStore();
 
   const transactions: Transaction[] = useMemo(() => {
     const combined: Transaction[] = [
@@ -29,12 +33,21 @@ const Transactions = () => {
     });
   }, [transactions, searchTerm, filterType]);
 
-  const handleDelete = async (t: Transaction) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+  const confirmDelete = async () => {
+    if (!transactionToDelete) return;
+    setIsDeleting(true);
     
-    const table = t.type === 'income' ? 'income' : 'expenses';
-    await supabase.from(table).delete().eq('id', t.id);
-    // Realtime will auto-update state
+    const table = transactionToDelete.type === 'income' ? 'income' : 'expenses';
+    const { error } = await supabase.from(table).delete().eq('id', transactionToDelete.id);
+    
+    if (!error) {
+      addToast('Transaction deleted successfully', 'success');
+    } else {
+      addToast('Failed to delete transaction', 'error');
+    }
+    
+    setIsDeleting(false);
+    setTransactionToDelete(null);
   };
 
   return (
@@ -98,7 +111,7 @@ const Transactions = () => {
                 <span className={`font-bold text-base tracking-tight ${t.type === 'income' ? 'text-[#2EA265]' : 'text-[#E04F5F]'}`}>
                   {t.type === 'income' ? '+' : '-'}₹{Number(t.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
-                <button onClick={() => handleDelete(t)} className="text-gray-300 hover:text-red-500 transition-colors p-2 active:scale-90">
+                <button onClick={() => setTransactionToDelete(t)} className="text-gray-300 hover:text-red-500 transition-colors p-2 active:scale-90">
                   <Trash2 size={18} />
                 </button>
               </div>
@@ -116,6 +129,37 @@ const Transactions = () => {
           )}
         </div>
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {transactionToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={32} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-extrabold text-center text-gray-900 dark:text-white mb-2">Delete Transaction?</h3>
+            <p className="text-center text-gray-500 dark:text-gray-400 font-medium mb-6">
+              Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-gray-200">"{transactionToDelete.type === 'income' ? transactionToDelete.source : transactionToDelete.expense_name}"</span> for <span className="font-bold text-gray-900 dark:text-gray-200">₹{transactionToDelete.amount}</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setTransactionToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 py-3.5 rounded-xl font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3.5 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-70 flex items-center justify-center"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

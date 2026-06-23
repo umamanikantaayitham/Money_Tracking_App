@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { Wallet, UserPlus } from 'lucide-react';
+import { useToastStore } from '../store/useToastStore';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -27,12 +27,13 @@ const Register = () => {
     });
 
     if (error) {
-      setError(error.message);
+      addToast(error.message, 'error');
     } else {
       if (data.session) {
+        addToast('Registration successful!', 'success');
         navigate('/');
       } else {
-        alert('Registration successful! Please check your email to confirm your account before logging in.');
+        addToast('Registration successful! Please check your email to confirm your account.', 'success');
         navigate('/login');
       }
     }
@@ -49,14 +50,8 @@ const Register = () => {
           <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
             Create Account
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Start tracking your money today</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Sign up to manage your finances</p>
         </div>
-
-        {error && (
-          <div className="bg-red-100 text-red-600 p-3 rounded-xl mb-6 text-sm text-center">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleRegister} className="space-y-5">
           <div>

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { Wallet, LogIn } from 'lucide-react';
+import { useToastStore } from '../store/useToastStore';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +22,9 @@ const Login = () => {
     });
 
     if (error) {
-      setError(error.message);
+      addToast(error.message, 'error');
     } else {
+      addToast('Welcome back!', 'success');
       navigate('/');
     }
     setLoading(false);
@@ -41,12 +43,6 @@ const Login = () => {
           <p className="text-gray-500 dark:text-gray-400 mt-2">Login to manage your finances</p>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-600 p-3 rounded-xl mb-6 text-sm text-center">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="label">Email</label>
@@ -61,10 +57,10 @@ const Login = () => {
           </div>
           
           <div>
-            <label className="label flex justify-between">
-              <span>Password</span>
-              <a href="#" className="text-primary hover:underline text-xs">Forgot?</a>
-            </label>
+            <div className="flex justify-between items-end mb-2">
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-0">Password</label>
+              <Link to="/forgot-password" className="text-primary hover:underline text-sm font-bold mb-0.5">Forgot Password?</Link>
+            </div>
             <input
               type="password"
               required
