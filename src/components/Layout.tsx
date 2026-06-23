@@ -1,9 +1,7 @@
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Home, BarChart2, Wallet, User as UserIcon, Plus } from 'lucide-react';
-import { useStore } from '../store/useStore';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
 
   const navItems = [
     { to: '/', icon: Home },

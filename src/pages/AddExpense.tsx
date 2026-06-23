@@ -20,7 +20,7 @@ const AddExpense = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<ExpenseFormInputs>({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<ExpenseFormInputs>({
     defaultValues: {
       category: EXPENSE_CATEGORIES[0],
       transaction_date: new Date().toISOString().split('T')[0],

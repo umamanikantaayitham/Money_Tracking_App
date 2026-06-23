@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Line } from 'react-chartjs-2';
 import { ArrowUpDown } from 'lucide-react';
@@ -76,7 +76,7 @@ const Analytics = () => {
         </div>
 
         <div className="space-y-4">
-          {topSpending.length > 0 ? topSpending.map((e, i) => (
+          {topSpending.length > 0 ? topSpending.map((e) => (
             <div key={e.id} className="glass-panel p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">
