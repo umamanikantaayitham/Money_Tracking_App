@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Money Tracker Pro</string>
+    <string name="title_activity_main">Money Tracker Pro</string>
+    <string name="package_name">com.moneytrackerpro.app</string>
+    <string name="custom_url_scheme">com.moneytrackerpro.app</string>
+</resources>
