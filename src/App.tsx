@@ -20,6 +20,12 @@ import Budget from './pages/Budget.tsx';
 import Analytics from './pages/Analytics.tsx';
 import Profile from './pages/Profile.tsx';
 import Settings from './pages/Settings.tsx';
+import InviteFriends from './pages/InviteFriends.tsx';
+import AccountInfo from './pages/AccountInfo.tsx';
+import PersonalProfile from './pages/PersonalProfile.tsx';
+import MessageCenter from './pages/MessageCenter.tsx';
+import LoginAndSecurity from './pages/LoginAndSecurity.tsx';
+import DataAndPrivacy from './pages/DataAndPrivacy.tsx';
 import ToastContainer from './components/ToastContainer.tsx';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -80,6 +86,14 @@ function App() {
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+        {/* Profile Sub-Pages */}
+        <Route path="/profile/invite" element={<ProtectedRoute><InviteFriends /></ProtectedRoute>} />
+        <Route path="/profile/account" element={<ProtectedRoute><AccountInfo /></ProtectedRoute>} />
+        <Route path="/profile/personal" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
+        <Route path="/profile/messages" element={<ProtectedRoute><MessageCenter /></ProtectedRoute>} />
+        <Route path="/profile/security" element={<ProtectedRoute><LoginAndSecurity /></ProtectedRoute>} />
+        <Route path="/profile/privacy" element={<ProtectedRoute><DataAndPrivacy /></ProtectedRoute>} />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

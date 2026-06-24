@@ -23,7 +23,26 @@ const Dashboard = () => {
 
   // Free API States
   const [cryptoPrices, setCryptoPrices] = useState<{bitcoin?: number, ethereum?: number}>({});
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>([
+    { 
+      url: '#', 
+      imageurl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=200&q=80', 
+      source: 'Finance Weekly', 
+      title: 'Global Markets Rally as Tech Stocks Surge This Week' 
+    },
+    { 
+      url: '#', 
+      imageurl: 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?auto=format&fit=crop&w=200&q=80', 
+      source: 'Crypto Insider', 
+      title: 'Bitcoin Breaks New Resistance Levels Amid Institutional Buying' 
+    },
+    { 
+      url: '#', 
+      imageurl: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=200&q=80', 
+      source: 'Market Watch', 
+      title: 'Top 5 Strategies for Managing Your Portfolio in 2026' 
+    }
+  ]);
 
   useEffect(() => {
     // 1. Fetch Live Crypto Prices (CoinGecko API - Free, No Key)
@@ -34,16 +53,6 @@ const Dashboard = () => {
           bitcoin: data.bitcoin?.inr,
           ethereum: data.ethereum?.inr
         });
-      })
-      .catch(console.error);
-
-    // 2. Fetch Live Financial News (CryptoCompare API - Free, No Key)
-    fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.Data) {
-          setNews(data.Data.slice(0, 3)); // Get top 3 news items
-        }
       })
       .catch(console.error);
   }, []);

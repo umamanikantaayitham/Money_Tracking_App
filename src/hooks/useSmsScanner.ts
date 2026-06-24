@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { supabase } from '../supabase';
 import { useStore } from '../store/useStore';
 import { useToastStore } from '../store/useToastStore';
+import { Capacitor } from '@capacitor/core';
+import { SMSInboxReader } from 'capacitor-sms-inbox';
 
 export const useSmsScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -33,36 +35,65 @@ export const useSmsScanner = () => {
     addToast('Requesting SMS permissions...', 'info');
 
     try {
-      // NOTE: In a true production Android app, you would use a Cordova/Capacitor SMS plugin here:
-      // const permissions = await SMS.requestPermissions();
-      // const messages = await SMS.read({ maxCount: 10 });
-      
-      // Since this is restricted by Google Play, we simulate reading a standard HDFC/SBI bank SMS
-      // for the demonstration of the algorithm working:
-      setTimeout(async () => {
-        const simulatedBankSMS = "Dear Customer, Rs. 1500.00 has been debited from a/c **4567 on 23-06-2026. Avail Bal INR 45,000.50. - HDFC Bank";
-        
-        const parsed = parseBankSMS(simulatedBankSMS);
-
-        if (parsed.amount && parsed.type) {
-          addToast(`Detected Bank SMS! ${parsed.type === 'expense' ? 'Debited' : 'Credited'} ₹${parsed.amount}`, 'success');
-          
-          // Auto-insert into database
-          const table = parsed.type === 'income' ? 'income' : 'expenses';
-          const payload = parsed.type === 'income' 
-            ? { user_id: user.id, source: 'Auto-Scanned Bank SMS', amount: parsed.amount, category: 'Bank Sync', transaction_date: new Date().toISOString().split('T')[0], notes: simulatedBankSMS }
-            : { user_id: user.id, expense_name: 'Auto-Scanned Bank SMS', amount: parsed.amount, category: 'Bank Sync', transaction_date: new Date().toISOString().split('T')[0], notes: simulatedBankSMS };
-
-          await supabase.from(table).insert([payload]);
-          addToast(`Successfully synced ₹${parsed.amount} to your dashboard!`, 'success');
-        } else {
-          addToast('No new bank transactions found in SMS.', 'info');
-        }
+      if (!Capacitor.isNativePlatform()) {
+        addToast('SMS scanning is only available on mobile apps.', 'error');
         setIsScanning(false);
-      }, 2000);
+        return;
+      }
+
+      const permissionStatus = await SMSInboxReader.checkPermissions();
+      if (permissionStatus.sms !== 'granted') {
+        const req = await SMSInboxReader.requestPermissions();
+        if (req.sms !== 'granted') {
+          addToast('SMS permission denied. Cannot scan messages.', 'error');
+          setIsScanning(false);
+          return;
+        }
+      }
+
+      addToast('Scanning recent messages...', 'info');
+      const { smsList } = await SMSInboxReader.getSMSList({
+        filter: { maxCount: 20 }
+      });
+
+      if (smsList && smsList.length > 0) {
+        let foundTransactions = 0;
+        
+        for (const sms of smsList) {
+          const message = sms.body;
+          const parsed = parseBankSMS(message);
+          
+          if (parsed.amount && parsed.type) {
+            foundTransactions++;
+            const table = parsed.type === 'income' ? 'income' : 'expenses';
+            
+            // Format date for Supabase
+            const dateObj = sms.date ? new Date(sms.date) : new Date();
+            const transactionDate = dateObj.toISOString().split('T')[0];
+            const sender = sms.address || 'Bank SMS';
+
+            const payload = parsed.type === 'income' 
+              ? { user_id: user.id, source: sender, amount: parsed.amount, category: 'Bank Sync', transaction_date: transactionDate, notes: message }
+              : { user_id: user.id, expense_name: sender, amount: parsed.amount, category: 'Bank Sync', transaction_date: transactionDate, notes: message };
+
+            await supabase.from(table).insert([payload]);
+            addToast(`Synced ${parsed.type === 'expense' ? 'Debit' : 'Credit'}: ₹${parsed.amount}`, 'success');
+          }
+        }
+        
+        if (foundTransactions === 0) {
+          addToast('No new bank transactions found in recent SMS.', 'info');
+        } else {
+          addToast(`Successfully scanned and synced ${foundTransactions} transactions!`, 'success');
+        }
+      } else {
+        addToast('No SMS messages found on device.', 'info');
+      }
 
     } catch (error) {
+      console.error(error);
       addToast('Failed to read SMS.', 'error');
+    } finally {
       setIsScanning(false);
     }
   };
