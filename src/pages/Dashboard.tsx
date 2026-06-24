@@ -23,7 +23,8 @@ const Dashboard = () => {
 
   // Free API States
   const [cryptoPrices, setCryptoPrices] = useState<{bitcoin?: number, ethereum?: number}>({});
-  const [news, setNews] = useState<any[]>([
+  
+  const news = [
     { 
       url: '#', 
       imageurl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=200&q=80', 
@@ -42,7 +43,7 @@ const Dashboard = () => {
       source: 'Market Watch', 
       title: 'Top 5 Strategies for Managing Your Portfolio in 2026' 
     }
-  ]);
+  ];
 
   useEffect(() => {
     // 1. Fetch Live Crypto Prices (CoinGecko API - Free, No Key)
